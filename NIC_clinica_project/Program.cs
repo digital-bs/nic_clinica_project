@@ -1,4 +1,5 @@
 
+using NIC_clinica_project.Models;
 using NIC_clinica_project.Repositories;
 
 namespace NIC_clinica_project
@@ -10,12 +11,12 @@ namespace NIC_clinica_project
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddScoped<ClientsRepository>();
-            builder.Services.AddScoped<DoctorsRepository>();
+            builder.Services.AddScoped<ICrudRepository<ClientsDtoWithKeys, ClientsDtoWithValues>, ClientsRepository>();
+            builder.Services.AddScoped<ICrudRepository<DoctorsDtoWithKeys, DoctorsDtoWithValues>, DoctorsRepository>();
 
             //var connectionString = builder.Configuration.GetConnectionString("ClinicaDb");
             //Console.WriteLine(connectionString);
-            builder.Services.AddControllers();
+            builder.Services.AddControllers();  
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
