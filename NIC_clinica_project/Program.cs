@@ -1,6 +1,6 @@
-
 using NIC_clinica_project.Models;
 using NIC_clinica_project.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace NIC_clinica_project
 {
@@ -14,8 +14,10 @@ namespace NIC_clinica_project
             builder.Services.AddScoped<ICrudRepository<ClientsDtoWithKeys, ClientsDtoWithValues>, ClientsRepository>();
             builder.Services.AddScoped<ICrudRepository<DoctorsDtoWithKeys, DoctorsDtoWithValues>, DoctorsRepository>();
 
-            //var connectionString = builder.Configuration.GetConnectionString("ClinicaDb");
-            //Console.WriteLine(connectionString);
+            var connectionString = builder.Configuration.GetConnectionString("ClinicaDb");
+            builder.Services.AddDbContext<ClinicaDbContext>(options => options.UseSqlServer(connectionString));
+
+
             builder.Services.AddControllers();  
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
