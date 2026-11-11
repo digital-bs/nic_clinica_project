@@ -9,6 +9,7 @@ namespace NIC_clinica_project.Repositories
     public class ClientsRepository : ICrudRepository<ClientsDtoWithKeys, ClientsDtoWithValues>
     {
         private readonly ClinicaDbContext _context;
+        private readonly ClientMapper _mapper;
         const int defaultPageSize = 10;
         const int maxPageSize = 100;
         private static readonly IReadOnlyDictionary<string, Func<IQueryable<Client>, IOrderedQueryable<Client>>> ClientOrderings =
@@ -26,9 +27,10 @@ namespace NIC_clinica_project.Repositories
 
         
 
-        public ClientsRepository(ClinicaDbContext context) 
+        public ClientsRepository(ClinicaDbContext context, ClientMapper mapper) 
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<bool> IsValid(ClientsDtoWithKeys client)
@@ -77,7 +79,7 @@ namespace NIC_clinica_project.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return clients.Select(c => c.ConvertToDtoWithValues()).ToList();
+            return clients.Select(c => _mapper.ConvertToDtoWithValues(c)).ToList();
 
         }
 
@@ -87,12 +89,12 @@ namespace NIC_clinica_project.Repositories
             if (client is null) return null;
 
 
-            return client.ConvertToDtoWithKeys();
+            return _mapper.ConvertToDtoWithKeys(client);
         }
 
         public async Task<int> Create(ClientsDtoWithKeys client)
         {
-            var newClient = client.ToEfEntity();
+            var newClient = _mapper.ConvertToEfEntity(client);
             _context.Clients.Add(newClient);
             await _context.SaveChangesAsync();
 
@@ -104,7 +106,7 @@ namespace NIC_clinica_project.Repositories
             var clientForUpdate = await _context.Clients.FindAsync(client.id);
             if (clientForUpdate is null)
                 return false;
-            client.ConvertToEfEntity(clientForUpdate);
+            _mapper.UpdateEntityFromKeysDto(client, clientForUpdate);
 
             await _context.SaveChangesAsync();
 

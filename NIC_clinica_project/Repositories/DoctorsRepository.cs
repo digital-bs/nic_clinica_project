@@ -10,6 +10,7 @@ namespace NIC_clinica_project.Repositories
     public class DoctorsRepository : ICrudRepository<DoctorsDtoWithKeys, DoctorsDtoWithValues>
     {
         private readonly ClinicaDbContext _context;
+        private readonly DoctorMapper _mapper;
         const int defaultPageSize = 10;
         const int maxPageSize = 100;
         private static readonly IReadOnlyDictionary<string, Func<IQueryable<Doctor>, IOrderedQueryable<Doctor>>> DoctorOrderings =
@@ -23,10 +24,10 @@ namespace NIC_clinica_project.Repositories
             };
 
 
-        public DoctorsRepository(ClinicaDbContext context) 
+        public DoctorsRepository(ClinicaDbContext context, DoctorMapper mapper) 
         {
             _context = context;
-
+            _mapper = mapper;
         }
 
         public bool IsSortable(string? orderParam)
@@ -39,10 +40,10 @@ namespace NIC_clinica_project.Repositories
             if (string.IsNullOrWhiteSpace(doctor.fio) || doctor.fio.Length > 200)
                 return false;
 
-            var isCabinetValid = await _context.Cabinets.AnyAsync(c => c.id == doctor.cabinetId);
+            var isCabinetValid = await _context.Cabinets.AnyAsync(c => c.id == doctor.cabinetID);
 
             if (!isCabinetValid) return false;
-            var isSpecValid = await _context.Specializations.AnyAsync(c=> c.id == doctor.specializationId);
+            var isSpecValid = await _context.Specializations.AnyAsync(c=> c.id == doctor.specializationID);
             
             if (!isSpecValid) return false;
 
@@ -76,7 +77,7 @@ namespace NIC_clinica_project.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            var doctorsDto = doctors.Select(d => d.ConvertToDtoWithValues()).ToList();
+            var doctorsDto = doctors.Select(d => _mapper.ConvertToDtoWithValues(d)).ToList();
 
             return doctorsDto;
 
@@ -86,12 +87,12 @@ namespace NIC_clinica_project.Repositories
             var doctor =await _context.Doctors.AsNoTracking().FirstOrDefaultAsync(d=>d.id ==id);
             if (doctor is null) return null;
 
-            return doctor.ConvertToDtoWithKeys();
+            return _mapper.ConvertToDtoWithKeys(doctor);
         }
 
         public async Task<int> Create(DoctorsDtoWithKeys doctor)
         {
-            var newDoctor = doctor.ToEFEntity();
+            var newDoctor = _mapper.ConvertToEfEntity(doctor);
             _context.Doctors.Add(newDoctor);
             await _context.SaveChangesAsync();
             return newDoctor.id;
@@ -102,7 +103,7 @@ namespace NIC_clinica_project.Repositories
         {
             var doctorForUpdate = await _context.Doctors.FindAsync(doctor.id);
             if (doctorForUpdate is null) return false;
-            doctor.ConvertToEFEntity(doctorForUpdate);
+            _mapper.UpdateEntityFromKeysDto(doctor, doctorForUpdate);
 
             await _context.SaveChangesAsync();
             return true;

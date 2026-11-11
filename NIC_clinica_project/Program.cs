@@ -1,6 +1,7 @@
 using NIC_clinica_project.Models;
 using NIC_clinica_project.Repositories;
 using Microsoft.EntityFrameworkCore;
+using NIC_clinica_project.Mappers;
 
 namespace NIC_clinica_project
 {
@@ -16,7 +17,8 @@ namespace NIC_clinica_project
 
             var connectionString = builder.Configuration.GetConnectionString("ClinicaDb");
             builder.Services.AddDbContext<ClinicaDbContext>(options => options.UseSqlServer(connectionString));
-
+            builder.Services.AddScoped<ClientMapper>();
+            builder.Services.AddScoped<DoctorMapper>();
 
             builder.Services.AddControllers();  
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

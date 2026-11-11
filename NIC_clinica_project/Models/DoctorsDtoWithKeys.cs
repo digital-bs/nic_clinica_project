@@ -2,8 +2,8 @@
 {
     public class DoctorsDtoWithKeys : DoctorDto
     {
-        public int cabinetId { get; set; }
-        public int specializationId { get; set; }
+        public int cabinetID { get; set; }
+        public int specializationID { get; set; }
         public int? regionId { get; set; }
     }
 }
